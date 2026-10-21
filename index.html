@@ -3,55 +3,269 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Testseite</title>
+  <title>Gebraucht-E-Auto-Vergleich</title>
   <style>
+    :root {
+      --bg: #e8f0f7;
+      --ink: #1a3a5c;
+      --card: #fff;
+      --accent: #f1c40f;
+      --muted: #5b7690;
+      --good: #1e8e4e;
+      --line: #cfdbe7;
+    }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
-      min-height: 100vh;
+      background: var(--bg);
+      font-family: system-ui, sans-serif;
+      color: var(--ink);
+    }
+    header { padding: 1.5rem 1rem 0.5rem; text-align: center; }
+    h1 { font-size: clamp(1.6rem, 5vw, 2.6rem); margin: 0; }
+    header p { margin: 0.4rem 0 0; color: var(--muted); }
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1rem;
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 1rem;
+      align-items: start;
+    }
+    @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
+    .panel {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 1px 4px rgba(26, 58, 92, 0.12);
+    }
+    .filters { position: sticky; top: 1rem; }
+    .filters h2, .results h2 { margin: 0 0 0.75rem; font-size: 1.1rem; }
+    .filter { margin-bottom: 1rem; }
+    .filter label { display: flex; justify-content: space-between; font-weight: 600; font-size: 0.9rem; }
+    .filter output { color: var(--muted); font-weight: 500; }
+    input[type=range] { width: 100%; accent-color: var(--ink); margin: 0.3rem 0 0; }
+    select, button {
+      font: inherit;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0.4rem 0.7rem;
+      background: #fff;
+      cursor: pointer;
+    }
+    .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+    .toolbar h2 { margin: 0; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.75rem; }
+    .car {
+      border: 2px solid var(--line);
+      border-radius: 10px;
+      padding: 0.8rem;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: #e8f0f7;
-      font-family: system-ui, sans-serif;
-      color: #1a3a5c;
+      gap: 0.3rem;
     }
-    h1 { font-size: clamp(2rem, 8vw, 4rem); margin: 1rem; text-align: center; }
-    svg { width: 260px; height: auto; }
-    .arm {
-      transform-origin: 118px 110px;
-      animation: wave 0.8s ease-in-out infinite alternate;
-    }
-    @keyframes wave {
-      from { transform: rotate(-15deg); }
-      to   { transform: rotate(25deg); }
-    }
+    .car.selected { border-color: var(--accent); background: #fffbe6; }
+    .car h3 { margin: 0; font-size: 1rem; }
+    .car .price { font-size: 1.25rem; font-weight: 700; }
+    .car dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 0.1rem 0.6rem; font-size: 0.85rem; }
+    .car dt { color: var(--muted); }
+    .car dd { margin: 0; text-align: right; }
+    .car label { margin-top: auto; padding-top: 0.4rem; font-size: 0.85rem; display: flex; gap: 0.4rem; align-items: center; cursor: pointer; }
+    .empty { color: var(--muted); padding: 1rem 0; }
+    .compare { max-width: 1100px; margin: 0 auto 1rem; }
+    .compare .scroll { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; min-width: 480px; }
+    th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--line); font-size: 0.9rem; }
+    thead th { background: var(--ink); color: #fff; }
+    td.best { color: var(--good); font-weight: 700; }
+    tbody th { color: var(--muted); font-weight: 600; white-space: nowrap; }
+    .note { font-size: 0.8rem; color: var(--muted); text-align: center; padding: 0 1rem 2rem; }
   </style>
 </head>
 <body>
-  <svg viewBox="0 0 200 260" role="img" aria-label="Winkendes Männchen">
-    <!-- Beine -->
-    <line x1="100" y1="170" x2="80" y2="240" stroke="#1a3a5c" stroke-width="8" stroke-linecap="round"/>
-    <line x1="100" y1="170" x2="120" y2="240" stroke="#1a3a5c" stroke-width="8" stroke-linecap="round"/>
-    <!-- Körper -->
-    <line x1="100" y1="90" x2="100" y2="170" stroke="#1a3a5c" stroke-width="8" stroke-linecap="round"/>
-    <!-- linker Arm -->
-    <line x1="100" y1="110" x2="68" y2="150" stroke="#1a3a5c" stroke-width="8" stroke-linecap="round"/>
-    <!-- winkender Arm -->
-    <g class="arm">
-      <line x1="100" y1="110" x2="140" y2="55" stroke="#1a3a5c" stroke-width="8" stroke-linecap="round"/>
-      <circle cx="142" cy="50" r="9" fill="#f5c9a0" stroke="#1a3a5c" stroke-width="3"/>
-    </g>
-    <!-- Kopf -->
-    <circle cx="100" cy="60" r="28" fill="#f5c9a0" stroke="#1a3a5c" stroke-width="5"/>
-    <circle cx="90" cy="55" r="3.5" fill="#1a3a5c"/>
-    <circle cx="110" cy="55" r="3.5" fill="#1a3a5c"/>
-    <path d="M86 70 Q100 82 114 70" fill="none" stroke="#1a3a5c" stroke-width="4" stroke-linecap="round"/>
-    <!-- Hut -->
-    <rect x="80" y="8" width="40" height="26" rx="3" fill="#1a3a5c"/>
-    <rect x="80" y="24" width="40" height="6" fill="#f1c40f"/>
-    <ellipse cx="100" cy="34" rx="34" ry="6" fill="#1a3a5c"/>
-  </svg>
-  <h1>Testseite</h1>
+  <header>
+    <h1>Gebrauchte E-Autos vergleichen</h1>
+    <p>Regler einstellen, passende Modelle sehen, bis zu 4 gegenüberstellen.</p>
+  </header>
+
+  <main>
+    <section class="panel filters" aria-label="Filter">
+      <h2>Filter</h2>
+      <div id="filters"></div>
+      <button id="reset" type="button">Zurücksetzen</button>
+    </section>
+
+    <section class="panel results" aria-label="Ergebnisse">
+      <div class="toolbar">
+        <h2 id="count" aria-live="polite"></h2>
+        <label>Sortieren:
+          <select id="sort">
+            <option value="price">Preis (aufsteigend)</option>
+            <option value="year">Baujahr (neueste zuerst)</option>
+            <option value="consumption">Verbrauch (niedrigster zuerst)</option>
+            <option value="range">Reichweite (höchste zuerst)</option>
+            <option value="km">Kilometerstand (niedrigster zuerst)</option>
+          </select>
+        </label>
+      </div>
+      <div class="cards" id="cards"></div>
+    </section>
+  </main>
+
+  <section class="compare panel" id="compare" hidden>
+    <div class="toolbar">
+      <h2>Vergleich</h2>
+      <button id="clear" type="button">Auswahl leeren</button>
+    </div>
+    <div class="scroll"><table id="table"></table></div>
+  </section>
+
+  <p class="note">Hinweis: Alle Daten sind frei gewählte Beispielwerte, keine echten Inserate. Die Liste steht oben im Skript (<code>CARS</code>) und lässt sich beliebig ändern.</p>
+
+  <script>
+    // Beispieldaten – bitte durch echte Inserate ersetzen
+    const CARS = [
+      { name: "Nissan Leaf 40 kWh",        year: 2019, price: 14500, km: 62000,  consumption: 17.0, range: 270, battery: 40,   dc: 50  },
+      { name: "Renault Zoe R135 52 kWh",   year: 2021, price: 16900, km: 48000,  consumption: 17.5, range: 330, battery: 52,   dc: 50  },
+      { name: "VW e-Golf",                 year: 2019, price: 15800, km: 55000,  consumption: 15.5, range: 230, battery: 35.8, dc: 40  },
+      { name: "VW ID.3 Pure 58 kWh",       year: 2021, price: 21900, km: 52000,  consumption: 15.5, range: 350, battery: 58,   dc: 100 },
+      { name: "VW ID.3 Pro S 77 kWh",      year: 2022, price: 28900, km: 41000,  consumption: 16.0, range: 540, battery: 77,   dc: 125 },
+      { name: "Skoda Enyaq iV 60",         year: 2022, price: 26500, km: 45000,  consumption: 16.5, range: 390, battery: 58,   dc: 120 },
+      { name: "Hyundai Kona Elektro 64",   year: 2020, price: 19900, km: 70000,  consumption: 15.0, range: 440, battery: 64,   dc: 77  },
+      { name: "Hyundai Ioniq Elektro",     year: 2019, price: 15500, km: 80000,  consumption: 14.0, range: 290, battery: 38.3, dc: 70  },
+      { name: "Kia e-Niro 64 kWh",         year: 2021, price: 24900, km: 58000,  consumption: 16.0, range: 450, battery: 64,   dc: 77  },
+      { name: "Kia EV6 77 kWh",            year: 2022, price: 34500, km: 36000,  consumption: 17.0, range: 500, battery: 77.4, dc: 233 },
+      { name: "Tesla Model 3 Long Range",  year: 2020, price: 27900, km: 85000,  consumption: 15.5, range: 560, battery: 75,   dc: 170 },
+      { name: "Tesla Model 3 RWD",         year: 2021, price: 26500, km: 60000,  consumption: 14.5, range: 440, battery: 57.5, dc: 170 },
+      { name: "Tesla Model Y Long Range",  year: 2022, price: 38900, km: 42000,  consumption: 16.5, range: 500, battery: 75,   dc: 250 },
+      { name: "BMW i3 120 Ah",             year: 2019, price: 17900, km: 66000,  consumption: 13.1, range: 260, battery: 42.2, dc: 50  },
+      { name: "BMW i4 eDrive40",           year: 2022, price: 38500, km: 38000,  consumption: 17.0, range: 580, battery: 80.7, dc: 200 },
+      { name: "Audi Q4 e-tron 40",         year: 2022, price: 33900, km: 40000,  consumption: 17.5, range: 520, battery: 77,   dc: 125 },
+      { name: "Peugeot e-208",             year: 2021, price: 16500, km: 38000,  consumption: 16.0, range: 340, battery: 50,   dc: 100 },
+      { name: "Opel Corsa-e",              year: 2021, price: 15900, km: 44000,  consumption: 16.5, range: 330, battery: 50,   dc: 100 },
+      { name: "Fiat 500e 42 kWh",          year: 2022, price: 18900, km: 28000,  consumption: 14.5, range: 320, battery: 42,   dc: 85  },
+      { name: "Mini Cooper SE",            year: 2021, price: 21500, km: 32000,  consumption: 15.0, range: 230, battery: 32.6, dc: 50  },
+      { name: "Polestar 2 Long Range",     year: 2021, price: 29900, km: 55000,  consumption: 18.5, range: 540, battery: 78,   dc: 150 },
+      { name: "Mercedes EQA 250",          year: 2022, price: 32900, km: 35000,  consumption: 17.0, range: 420, battery: 66.5, dc: 100 },
+    ];
+
+    const MAX_COMPARE = 4;
+
+    // better: 1 = höherer Wert ist besser, -1 = niedrigerer Wert ist besser
+    const FIELDS = [
+      { key: "year",        label: "Baujahr",             unit: "",            step: 1,    better: 1 },
+      { key: "price",       label: "Preis",               unit: " €",          step: 500,  better: -1 },
+      { key: "km",          label: "Kilometerstand",      unit: " km",         step: 1000, better: -1 },
+      { key: "consumption", label: "Verbrauch",           unit: " kWh/100 km", step: 0.5,  better: -1 },
+      { key: "range",       label: "Reichweite (WLTP)",   unit: " km",         step: 10,   better: 1 },
+      { key: "battery",     label: "Akkukapazität",       unit: " kWh",        step: 1,    better: 1 },
+      { key: "dc",          label: "Schnellladen (max.)", unit: " kW",         step: 5,    better: 1 },
+    ];
+    const field = key => FIELDS.find(f => f.key === key);
+    const SLIDER_KEYS = ["year", "price", "km", "consumption", "range"];
+    // Bei diesen Reglern gilt "mindestens", bei den übrigen "höchstens"
+    const MIN_KEYS = ["year", "range"];
+    // Sortierung absteigend?
+    const SORT_DESC = { price: false, year: true, consumption: false, range: true, km: false };
+
+    const fmt = (n, f) => (f.key === "year" ? String(n) : n.toLocaleString("de-DE", { maximumFractionDigits: 1 }) + f.unit);
+    const bounds = key => {
+      const f = field(key);
+      const vals = CARS.map(c => c[key]);
+      return { lo: Math.floor(Math.min(...vals) / f.step) * f.step, hi: Math.ceil(Math.max(...vals) / f.step) * f.step };
+    };
+    const defaultValue = key => { const b = bounds(key); return MIN_KEYS.includes(key) ? b.lo : b.hi; };
+
+    const state = {};
+    const selected = new Set();
+
+    const filtersEl = document.getElementById("filters");
+    SLIDER_KEYS.forEach(key => {
+      const f = field(key);
+      const { lo, hi } = bounds(key);
+      state[key] = defaultValue(key);
+      const wrap = document.createElement("div");
+      wrap.className = "filter";
+      wrap.innerHTML = `
+        <label for="f-${key}">${f.label} (${MIN_KEYS.includes(key) ? "mind." : "max."}) <output id="o-${key}"></output></label>
+        <input type="range" id="f-${key}" min="${lo}" max="${hi}" step="${f.step}" value="${state[key]}">`;
+      filtersEl.appendChild(wrap);
+      wrap.querySelector("input").addEventListener("input", e => {
+        state[key] = Number(e.target.value);
+        render();
+      });
+    });
+
+    document.getElementById("reset").addEventListener("click", () => {
+      SLIDER_KEYS.forEach(key => {
+        state[key] = defaultValue(key);
+        document.getElementById("f-" + key).value = state[key];
+      });
+      render();
+    });
+    document.getElementById("sort").addEventListener("change", render);
+    document.getElementById("clear").addEventListener("click", () => { selected.clear(); render(); });
+
+    const matches = c => SLIDER_KEYS.every(k => MIN_KEYS.includes(k) ? c[k] >= state[k] : c[k] <= state[k]);
+
+    function render() {
+      SLIDER_KEYS.forEach(k => {
+        document.getElementById("o-" + k).textContent = fmt(state[k], field(k));
+      });
+
+      const sortKey = document.getElementById("sort").value;
+      const list = CARS.filter(matches).sort((a, b) =>
+        SORT_DESC[sortKey] ? b[sortKey] - a[sortKey] : a[sortKey] - b[sortKey]);
+
+      document.getElementById("count").textContent = `${list.length} von ${CARS.length} Modellen`;
+
+      const cards = document.getElementById("cards");
+      cards.innerHTML = list.length ? "" : '<p class="empty">Keine Treffer – Regler lockern.</p>';
+      list.forEach(c => {
+        const el = document.createElement("article");
+        el.className = "car" + (selected.has(c.name) ? " selected" : "");
+        const rows = ["year", "km", "consumption", "range", "battery", "dc"]
+          .map(k => `<dt>${field(k).label}</dt><dd>${fmt(c[k], field(k))}</dd>`).join("");
+        el.innerHTML = `
+          <h3></h3>
+          <div class="price">${fmt(c.price, field("price"))}</div>
+          <dl>${rows}</dl>
+          <label><input type="checkbox"> Zum Vergleich</label>`;
+        el.querySelector("h3").textContent = c.name;
+        const box = el.querySelector("input");
+        box.checked = selected.has(c.name);
+        box.addEventListener("change", () => {
+          if (box.checked && selected.size >= MAX_COMPARE) { box.checked = false; return; }
+          box.checked ? selected.add(c.name) : selected.delete(c.name);
+          render();
+        });
+        cards.appendChild(el);
+      });
+
+      renderCompare();
+    }
+
+    function renderCompare() {
+      const section = document.getElementById("compare");
+      const chosen = CARS.filter(c => selected.has(c.name));
+      section.hidden = chosen.length === 0;
+      if (!chosen.length) return;
+
+      const head = "<thead><tr><th></th>" + chosen.map(c => `<th>${c.name}</th>`).join("") + "</tr></thead>";
+      const body = FIELDS.map(f => {
+        const vals = chosen.map(c => c[f.key]);
+        const best = f.better === 1 ? Math.max(...vals) : Math.min(...vals);
+        const differs = vals.some(v => v !== best);
+        const cells = chosen.map(c =>
+          `<td class="${differs && c[f.key] === best ? "best" : ""}">${fmt(c[f.key], f)}</td>`).join("");
+        return `<tr><th scope="row">${f.label}</th>${cells}</tr>`;
+      }).join("");
+      document.getElementById("table").innerHTML = head + "<tbody>" + body + "</tbody>";
+    }
+
+    render();
+  </script>
 </body>
 </html>

@@ -164,9 +164,9 @@
       { key: "dc",          label: "Schnellladen (max.)", unit: " kW",         step: 5,    better: 1 },
     ];
     const field = key => FIELDS.find(f => f.key === key);
-    const SLIDER_KEYS = ["year", "price", "km", "consumption", "range"];
+    const SLIDER_KEYS = ["year", "price", "km", "consumption", "range", "battery"];
     // Bei diesen Reglern gilt "mindestens", bei den übrigen "höchstens"
-    const MIN_KEYS = ["year", "range"];
+    const MIN_KEYS = ["year", "range", "battery"];
     // Sortierung absteigend?
     const SORT_DESC = { price: false, year: true, consumption: false, range: true, km: false };
 

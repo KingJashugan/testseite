@@ -22,9 +22,17 @@
       transform-origin: 118px 110px;
       animation: wave 0.8s ease-in-out infinite alternate;
     }
+    .arm-left {
+      transform-origin: 82px 110px;
+      animation: wave-left 0.8s ease-in-out infinite alternate;
+    }
     @keyframes wave {
       from { transform: rotate(-15deg); }
       to   { transform: rotate(25deg); }
+    }
+    @keyframes wave-left {
+      from { transform: rotate(15deg); }
+      to   { transform: rotate(-25deg); }
     }
   </style>
 </head>

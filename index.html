@@ -1,68 +1,571 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Testseite</title>
-  <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: #e8f0f7;
-      font-family: system-ui, sans-serif;
-      color: #1a3a5c;
-    }
-    h1 { font-size: clamp(2rem, 8vw, 4rem); margin: 1rem; text-align: center; }
-    svg { width: 260px; height: auto; }
-    .arm {
-      transform-origin: 118px 110px;
-      animation: wave 0.8s ease-in-out infinite alternate;
-    }
-    .arm-left {
-      transform-origin: 82px 110px;
-      animation: wave-left 0.8s ease-in-out infinite alternate;
-    }
-    @keyframes wave {
-      from { transform: rotate(-15deg); }
-      to   { transform: rotate(25deg); }
-    }
-    @keyframes wave-left {
-      from { transform: rotate(15deg); }
-      to   { transform: rotate(-25deg); }
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 </head>
 <body>
-  <svg viewBox="0 0 200 260" role="img" aria-label="Winkendes Männchen">
-    <!-- Beine -->
-    <line x1="100" y1="170" x2="80" y2="240" stroke="#1a3a5c" stroke-width="8" stroke-linecap="round"/>
-    <line x1="100" y1="170" x2="120" y2="240" stroke="#1a3a5c" stroke-width="8" stroke-linecap="round"/>
-    <!-- Körper -->
-    <line x1="100" y1="90" x2="100" y2="170" stroke="#1a3a5c" stroke-width="8" stroke-linecap="round"/>
-    <!-- linker winkender Arm -->
-    <g class="arm-left">
-      <line x1="100" y1="110" x2="60" y2="55" stroke="#1a3a5c" stroke-width="8" stroke-linecap="round"/>
-      <circle cx="58" cy="50" r="9" fill="#f5c9a0" stroke="#1a3a5c" stroke-width="3"/>
-    </g>
-    <!-- rechter winkender Arm -->
-    <g class="arm">
-      <line x1="100" y1="110" x2="140" y2="55" stroke="#1a3a5c" stroke-width="8" stroke-linecap="round"/>
-      <circle cx="142" cy="50" r="9" fill="#f5c9a0" stroke="#1a3a5c" stroke-width="3"/>
-    </g>
-    <!-- Kopf -->
-    <circle cx="100" cy="60" r="28" fill="#f5c9a0" stroke="#1a3a5c" stroke-width="5"/>
-    <circle cx="90" cy="55" r="3.5" fill="#1a3a5c"/>
-    <circle cx="110" cy="55" r="3.5" fill="#1a3a5c"/>
-    <path d="M86 70 Q100 82 114 70" fill="none" stroke="#1a3a5c" stroke-width="4" stroke-linecap="round"/>
-    <!-- Hut -->
-    <rect x="80" y="8" width="40" height="26" rx="3" fill="#1a3a5c"/>
-    <rect x="80" y="24" width="40" height="6" fill="#f1c40f"/>
-    <ellipse cx="100" cy="34" rx="34" ry="6" fill="#1a3a5c"/>
-  </svg>
-  <h1>Testseite</h1>
+<title>Nachbarschaftsbrett</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: Aushang-Brett. Links das Formular (klebt beim Scrollen), rechts die Zettel als Raster; Gesuche gestrichelt, Angebote durchgezogen. */
+:root {
+  --bg: #EDF1EC;
+  --surface: #FFFFFF;
+  --ink: #1B2620;
+  --muted: #56645C;
+  --line: #CDD6CF;
+  --biete: #1C6A4C;
+  --biete-soft: #DAEDE2;
+  --suche: #2D4C9B;
+  --suche-soft: #DFE6F7;
+  --mark: #8A6300;
+  --mark-soft: #F7E7A8;
+  --danger: #A3302A;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111814; --surface: #19221D; --ink: #E5ECE7; --muted: #9AA9A0; --line: #2D3933;
+    --biete: #73CDA5; --biete-soft: #1D3A2C; --suche: #98B1F3; --suche-soft: #222D4A;
+    --mark: #EBC84E; --mark-soft: #3A3115; --danger: #F08A82; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111814; --surface: #19221D; --ink: #E5ECE7; --muted: #9AA9A0; --line: #2D3933;
+  --biete: #73CDA5; --biete-soft: #1D3A2C; --suche: #98B1F3; --suche-soft: #222D4A;
+  --mark: #EBC84E; --mark-soft: #3A3115; --danger: #F08A82; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 56px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--suche); outline-offset: 2px; }
+
+header.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px 32px; }
+.brand h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+.brand p { margin: 10px 0 0; color: var(--muted); max-width: 52ch; }
+.tally { display: flex; gap: 10px; flex-wrap: wrap; }
+.tally button {
+  border: 1px solid var(--line); background: var(--surface); border-radius: 999px;
+  padding: 6px 14px; cursor: pointer; display: flex; gap: 8px; align-items: baseline;
+  font-variant-numeric: tabular-nums;
+}
+.tally b { font-family: var(--font-display); font-size: 1.25rem; }
+.tally .t-biete b { color: var(--biete); }
+.tally .t-suche b { color: var(--suche); }
+.tally .t-match b { color: var(--mark); }
+.tally button[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+
+.notice { font-size: .92rem; color: var(--muted); border: 1px dashed var(--line); border-radius: var(--r); padding: 10px 14px; margin: 0; }
+.notice[data-kind="warn"] { color: var(--ink); background: var(--mark-soft); border-color: transparent; }
+
+.main { display: grid; grid-template-columns: minmax(280px, 360px) minmax(0, 1fr); gap: 28px; align-items: start; }
+@media (max-width: 860px) { .main { grid-template-columns: minmax(0, 1fr); } }
+
+.composer { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 20px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); }
+@media (max-width: 860px) { .composer { position: static; } }
+.composer h2 { font-size: 1.35rem; margin-bottom: 14px; }
+form { display: grid; gap: 14px; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; position: relative; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label { text-align: center; padding: 9px 6px; cursor: pointer; font-weight: 700; }
+.seg input:focus-visible + label { outline: 3px solid var(--suche); outline-offset: -3px; }
+#typ-biete:checked + label { background: var(--biete); color: var(--surface); }
+#typ-suche:checked + label { background: var(--suche); color: var(--surface); }
+.field { display: grid; gap: 5px; }
+.field > label, .legend { font-size: .78rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 700; }
+.field input, .field select, .field textarea {
+  width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; background: var(--bg);
+}
+.field textarea { min-height: 84px; resize: vertical; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.row2 > * { min-width: 0; }
+.arts { display: flex; flex-wrap: wrap; gap: 6px; position: relative; }
+.arts input { position: absolute; opacity: 0; pointer-events: none; }
+.arts label { border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; cursor: pointer; font-size: .92rem; }
+.arts input:checked + label { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.arts input:focus-visible + label { outline: 3px solid var(--suche); outline-offset: 2px; }
+.hint { font-size: .85rem; color: var(--muted); margin: 0; }
+.btn {
+  border: 0; border-radius: 8px; padding: 11px 16px; font-weight: 700; cursor: pointer;
+  background: var(--ink); color: var(--bg);
+}
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); padding: 6px 12px; font-weight: 400; }
+.status { font-size: .9rem; min-height: 1.4em; margin: 0; }
+
+.board { display: grid; gap: 16px; min-width: 0; }
+.tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.tools input[type="search"] { flex: 1 1 220px; border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; background: var(--surface); min-width: 0; }
+.tools select { border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; background: var(--surface); max-width: 100%; }
+.check { display: flex; gap: 6px; align-items: center; font-size: .92rem; color: var(--muted); }
+#out { display: grid; gap: 14px; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+.card {
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--r);
+  padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0;
+  transition: box-shadow .2s, border-color .2s;
+}
+.card.suche { border-style: dashed; border-color: color-mix(in srgb, var(--suche) 45%, var(--line)); }
+.card.biete { border-color: color-mix(in srgb, var(--biete) 35%, var(--line)); }
+.card.done { opacity: .6; }
+.card.hl { box-shadow: 0 0 0 3px var(--mark); border-color: transparent; }
+.card .meta-top { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.pill { font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; border-radius: 4px; padding: 2px 7px; }
+.pill.biete { background: var(--biete-soft); color: var(--biete); }
+.pill.suche { background: var(--suche-soft); color: var(--suche); }
+.pill.ex { background: var(--mark-soft); color: var(--mark); }
+.pill.ok { background: var(--line); color: var(--muted); }
+.cat { font-size: .85rem; color: var(--muted); }
+.card h3 { font-size: 1.15rem; font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
+.card p.txt { margin: 0; overflow-wrap: anywhere; white-space: pre-line; }
+.who { font-size: .9rem; color: var(--muted); display: grid; gap: 4px; }
+.contact { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.contact span { color: var(--ink); user-select: all; overflow-wrap: anywhere; }
+.linkbtn { background: none; border: 0; padding: 0; color: var(--suche); text-decoration: underline; cursor: pointer; font-size: .88rem; }
+.matchline { background: var(--mark-soft); color: var(--ink); border-radius: 6px; padding: 6px 10px; font-size: .9rem; display: flex; justify-content: space-between; gap: 8px; align-items: center; flex-wrap: wrap; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 10px; }
+.actions .danger { color: var(--danger); }
+
+.pairs { display: grid; gap: 14px; }
+.pair { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); gap: 12px; align-items: stretch; }
+.pair .why { align-self: center; text-align: center; font-size: .82rem; color: var(--mark); font-weight: 700; max-width: 120px; }
+.pair .why b { display: block; font-family: var(--font-display); font-size: 1.6rem; line-height: 1; }
+@media (max-width: 640px) { .pair { grid-template-columns: minmax(0,1fr); } .pair .why { max-width: none; } }
+
+.empty { background: var(--surface); border: 1.5px dashed var(--line); border-radius: var(--r); padding: 28px; display: grid; gap: 12px; justify-items: start; }
+.empty h3 { font-size: 1.3rem; }
+.empty p { margin: 0; color: var(--muted); max-width: 56ch; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Nachbarschaftsbrett</h1>
+      <p>Hilfe anbieten, Werkzeug verleihen, Dinge verschenken oder um Unterstützung bitten. Passende Angebote und Gesuche findet das Brett von selbst.</p>
+    </div>
+    <div class="tally" role="group" aria-label="Ansicht wählen">
+      <button type="button" class="t-biete" data-view="biete" aria-pressed="false"><b id="n-biete">0</b> Angebote</button>
+      <button type="button" class="t-suche" data-view="suche" aria-pressed="false"><b id="n-suche">0</b> Gesuche</button>
+      <button type="button" class="t-match" data-view="treffer" aria-pressed="false"><b id="n-match">0</b> Treffer</button>
+    </div>
+  </header>
+
+  <p class="notice" id="mode-note" hidden></p>
+
+  <div class="main">
+    <aside class="composer" aria-labelledby="composer-h">
+      <h2 id="composer-h">Zettel schreiben</h2>
+      <form id="form" novalidate>
+        <div class="seg" role="radiogroup" aria-label="Ich …">
+          <input type="radio" name="typ" id="typ-biete" value="biete" checked><label for="typ-biete">Ich biete</label>
+          <input type="radio" name="typ" id="typ-suche" value="suche"><label for="typ-suche">Ich suche</label>
+        </div>
+        <div class="field">
+          <span class="legend" id="art-legend">Art</span>
+          <div class="arts" role="radiogroup" aria-labelledby="art-legend">
+            <input type="radio" name="art" id="art-hilfe" value="hilfe" checked><label for="art-hilfe" data-b="Hilfe" data-s="Hilfe">Hilfe</label>
+            <input type="radio" name="art" id="art-leihen" value="leihen"><label for="art-leihen" data-b="Verleihe" data-s="Möchte leihen">Verleihe</label>
+            <input type="radio" name="art" id="art-schenken" value="schenken"><label for="art-schenken" data-b="Verschenke" data-s="Nehme gern">Verschenke</label>
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-kat">Kategorie</label>
+          <select id="f-kat" name="kategorie"></select>
+        </div>
+        <div class="field">
+          <label for="f-titel">Worum geht es?</label>
+          <input id="f-titel" name="titel" maxlength="90" placeholder="z. B. Akku-Bohrmaschine" required>
+        </div>
+        <div class="field">
+          <label for="f-text">Details</label>
+          <textarea id="f-text" name="text" maxlength="600" placeholder="Wann, wie lange, was ist wichtig?"></textarea>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="f-name">Dein Name</label>
+            <input id="f-name" name="name" maxlength="40" placeholder="Vorname" required>
+          </div>
+          <div class="field">
+            <label for="f-ort">Wo?</label>
+            <input id="f-ort" name="ort" maxlength="50" placeholder="Straße / Haus">
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-kontakt">Kontakt</label>
+          <input id="f-kontakt" name="kontakt" maxlength="80" placeholder="Telefon, E-Mail oder „bei Nr. 12 klingeln“" required>
+        </div>
+        <p class="hint">Alle, die das Brett sehen, lesen deinen Zettel samt Kontakt.</p>
+        <button class="btn" id="submit" type="submit">Zettel aufhängen</button>
+        <p class="status" id="status" role="status" aria-live="polite"></p>
+      </form>
+    </aside>
+
+    <section class="board" aria-label="Einträge">
+      <div class="tools">
+        <input type="search" id="q" placeholder="Suchen: Leiter, Einkauf, Nachhilfe …" aria-label="Einträge durchsuchen">
+        <select id="f-filter-kat" aria-label="Nach Kategorie filtern"></select>
+        <label class="check"><input type="checkbox" id="show-done"> Erledigte zeigen</label>
+      </div>
+      <div id="out"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+(() => {
+  const KATS = [
+    ["werkzeug", "Werkzeug & Geräte"], ["einkauf", "Einkaufen & Besorgungen"], ["garten", "Garten & Balkon"],
+    ["handwerk", "Handwerk & Reparatur"], ["umzug", "Tragen & Umzug"], ["kinder", "Kinder & Betreuung"],
+    ["tiere", "Haustiere"], ["technik", "Technik & Computer"], ["lernen", "Nachhilfe & Sprachen"],
+    ["fahrten", "Fahrten"], ["haushalt", "Haushalt & Kleidung"], ["sonstiges", "Sonstiges"]
+  ];
+  const KAT = Object.fromEntries(KATS);
+  const ART = { biete: { hilfe: "Hilfe", leihen: "Verleihe", schenken: "Verschenke" },
+                suche: { hilfe: "Hilfe gesucht", leihen: "Möchte leihen", schenken: "Nehme gern" } };
+
+  const BEISPIELE = [
+    { id: "x1", typ: "biete", art: "leihen", kategorie: "werkzeug", titel: "Akku-Bohrmaschine mit Bitset", text: "18 V, zwei Akkus. Gerne fürs Wochenende.", name: "Jonas (Beispiel)", ort: "Lindenstr. 8", kontakt: "bei Lindenstr. 8 klingeln", created: Date.now() - 864e5 * 2 },
+    { id: "x2", typ: "suche", art: "leihen", kategorie: "werkzeug", titel: "Bohrmaschine für zwei Regale", text: "Brauche sie nur einen Nachmittag, Dübel habe ich.", name: "Aylin (Beispiel)", ort: "Lindenstr. 3", kontakt: "Klingel Lindenstr. 3", created: Date.now() - 864e5 },
+    { id: "x3", typ: "biete", art: "hilfe", kategorie: "einkauf", titel: "Gehe samstags zum Wochenmarkt", text: "Nehme gern eine Einkaufsliste mit.", name: "Renate (Beispiel)", ort: "Am Bachweg", kontakt: "Zettel in Briefkasten Bachweg 2", created: Date.now() - 864e5 * 3 },
+    { id: "x4", typ: "suche", art: "hilfe", kategorie: "einkauf", titel: "Einkauf für meine Mutter", text: "Einmal pro Woche Wasserkisten und Lebensmittel, sie wohnt im 3. Stock.", name: "Tim (Beispiel)", ort: "Lindenstr. 12", kontakt: "tim@example.org", created: Date.now() - 36e5 * 5 },
+    { id: "x5", typ: "biete", art: "schenken", kategorie: "kinder", titel: "Kinderfahrrad 16 Zoll", text: "Etwas zerkratzt, fährt aber gut.", name: "Mo (Beispiel)", ort: "Hofseite", kontakt: "Klingel Hof, 2. OG", created: Date.now() - 36e5 * 20 },
+    { id: "x6", typ: "suche", art: "hilfe", kategorie: "technik", titel: "Hilfe beim neuen Handy", text: "WhatsApp und Fotos vom alten Handy übertragen.", name: "Herr P. (Beispiel)", ort: "Lindenstr. 1", kontakt: "bei P. klingeln", created: Date.now() - 36e5 * 2 }
+  ].map(e => ({ ...e, owner: "beispiel", beispiel: true, erledigt: false }));
+
+  const $ = s => document.querySelector(s);
+  const state = {
+    mode: "loading",       // loading | db | local | readonly
+    db: null, uid: null, isOwner: false,
+    entries: [],
+    showExamples: false,
+    view: "alle", q: "", kat: "", showDone: false,
+    hl: null, confirmDel: null
+  };
+
+  const el = (tag, attrs = {}, ...kids) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === "class") n.className = v;
+      else if (k === "text") n.textContent = v;
+      else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+      else if (v !== false && v != null) n.setAttribute(k, v === true ? "" : v);
+    }
+    for (const c of kids.flat()) if (c != null && c !== false) n.append(c);
+    return n;
+  };
+  const fmtDate = t => {
+    const d = new Date(t), now = new Date();
+    if (d.toDateString() === now.toDateString()) return "heute";
+    const y = new Date(now); y.setDate(now.getDate() - 1);
+    if (d.toDateString() === y.toDateString()) return "gestern";
+    return d.toLocaleDateString("de-DE", { day: "numeric", month: "short" });
+  };
+  const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } };
+  const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+
+  // ---------- Matching ----------
+  const STOP = new Set("brauche brauchen suche suchen biete bieten gerne gern habe haben eine einen einem einer eines dass oder auch mein meine meinen wird kann koennte bitte fuer mich noch etwas ueber nach beim sich sind waere einmal immer schon dann wenn aber nicht jemand jemanden helfen hilfe leihen verleihe verschenke nehme moechte woche wochenende nachmittag stunde stunden zwei drei".split(" "));
+  const wordCache = new Map();
+  const words = s => {
+    s = String(s || "");
+    if (wordCache.has(s)) return wordCache.get(s);
+    const out = new Set();
+    s.toLowerCase().replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss")
+      .split(/[^a-z0-9]+/).forEach(w => {
+        if (w.length < 4 || STOP.has(w)) return;
+        let st = w.replace(/(en|er|es|e|n|s)$/, "");
+        if (st.length < 4) st = w;
+        out.add(st);
+      });
+    wordCache.set(s, out);
+    return out;
+  };
+  const matchesFor = (e, pool) => {
+    if (!e || !e.typ || e.erledigt) return [];
+    const we = words(e.titel + " " + e.text);
+    const res = [];
+    for (const o of pool) {
+      if (o.typ === e.typ || o.erledigt || (state.mode === "db" && !e.beispiel && o.owner === e.owner)) continue;
+      const wo = words(o.titel + " " + o.text);
+      const shared = new Set();
+      for (const a of we) for (const b of wo) {
+        // gleiche Wörter oder Wortanfänge: "bohrmaschin" ~ "akku-bohrmaschin", "regal" ~ "regale"
+        if (a === b || (a.length >= 5 && b.length >= 5 && (a.startsWith(b) || b.startsWith(a)))) shared.add(a.length <= b.length ? a : b);
+      }
+      const sameKat = e.kategorie === o.kategorie;
+      if (shared.size === 0 && !(sameKat && e.kategorie !== "sonstiges")) continue;
+      const sameArt = e.art === o.art;
+      res.push({ o, score: shared.size * 3 + (sameKat ? 2 : 0) + (sameArt ? 1 : 0), shared: [...shared], sameKat });
+    }
+    return res.sort((a, b) => b.score - a.score);
+  };
+
+  // ---------- Daten ----------
+  const allEntries = () => state.showExamples ? [...BEISPIELE, ...state.entries] : state.entries;
+  const canWrite = () => state.mode === "db" || state.mode === "local";
+  const isMine = e => !e.beispiel && (state.mode === "local" || (state.mode === "db" && e.owner === state.uid));
+  const canModerate = e => isMine(e) || (!e.beispiel && state.mode === "db" && state.isOwner);
+
+  let writeChain = Promise.resolve();
+  function saveOwnerItems(owner, items) {
+    if (state.mode === "local") {
+      state.entries = items.map(i => ({ ...i, owner: "local" }));
+      lsSet("nb-eintraege", items.map(({ owner: _o, ...rest }) => rest));
+      render();
+      return Promise.resolve();
+    }
+    const clean = items.map(({ owner: _o, ...rest }) => rest);
+    const p = writeChain.then(() => state.db.doc("eintraege/" + owner).set({ items: clean }));
+    writeChain = p.catch(() => {});
+    return p.catch(err => {
+      setStatus(err && err.code === "quota_exceeded" ? "Das Brett ist voll. Bitte alte Zettel löschen." : "Speichern hat nicht geklappt. Bitte gleich nochmal versuchen.", true);
+      throw err;
+    });
+  }
+  const itemsOf = owner => state.entries.filter(e => e.owner === owner);
+  const addEntry = entry => { const owner = state.mode === "local" ? "local" : state.uid; return saveOwnerItems(owner, [entry, ...itemsOf(owner)]); };
+  const changeEntry = (e, patch) => saveOwnerItems(e.owner, itemsOf(e.owner).map(i => i.id === e.id ? { ...i, ...patch } : i));
+  const deleteEntry = e => saveOwnerItems(e.owner, itemsOf(e.owner).filter(i => i.id !== e.id));
+
+  // ---------- Formular ----------
+  const kSel = $("#f-kat"), fSel = $("#f-filter-kat");
+  KATS.forEach(([k, v]) => kSel.append(el("option", { value: k, text: v })));
+  fSel.append(el("option", { value: "", text: "Alle Kategorien" }));
+  KATS.forEach(([k, v]) => fSel.append(el("option", { value: k, text: v })));
+
+  const syncArtLabels = () => {
+    const t = document.querySelector('input[name="typ"]:checked').value;
+    document.querySelectorAll(".arts label").forEach(l => l.textContent = t === "biete" ? l.dataset.b : l.dataset.s);
+    $("#submit").textContent = t === "biete" ? "Angebot aufhängen" : "Gesuch aufhängen";
+  };
+  document.querySelectorAll('input[name="typ"]').forEach(r => r.addEventListener("change", syncArtLabels));
+  syncArtLabels();
+
+  const me = lsGet("nb-ich", null);
+  if (me) { $("#f-name").value = me.name || ""; $("#f-kontakt").value = me.kontakt || ""; $("#f-ort").value = me.ort || ""; }
+
+  function setStatus(msg, bad) { const s = $("#status"); s.textContent = msg; s.style.color = bad ? "var(--danger)" : "var(--muted)"; }
+
+  $("#form").addEventListener("submit", async ev => {
+    ev.preventDefault();
+    if (!canWrite()) return;
+    const f = new FormData(ev.target);
+    const entry = {
+      id: newId(), typ: f.get("typ"), art: f.get("art"), kategorie: f.get("kategorie"),
+      titel: String(f.get("titel") || "").trim(), text: String(f.get("text") || "").trim(),
+      name: String(f.get("name") || "").trim(), ort: String(f.get("ort") || "").trim(),
+      kontakt: String(f.get("kontakt") || "").trim(), created: Date.now(), erledigt: false
+    };
+    const missing = [!entry.titel && "worum es geht", !entry.name && "deinen Namen", !entry.kontakt && "einen Kontakt"].filter(Boolean);
+    if (missing.length) { setStatus("Bitte noch " + missing.join(", ") + " eintragen.", true); return; }
+    $("#submit").disabled = true;
+    try {
+      await addEntry(entry);
+      lsSet("nb-ich", { name: entry.name, kontakt: entry.kontakt, ort: entry.ort });
+      $("#f-titel").value = ""; $("#f-text").value = "";
+      const owned = { ...entry, owner: state.mode === "local" ? "local" : state.uid };
+      const m = matchesFor(owned, allEntries());
+      setStatus(m.length ? `Hängt am Brett. ${m.length} passende${m.length === 1 ? "r Zettel" : " Zettel"} markiert.` : "Hängt am Brett.");
+      state.hl = m.length ? entry.id : null;
+      if (m.length) state.view = "alle";
+      render();
+    } catch { /* Meldung kommt aus saveOwnerItems */ }
+    finally { $("#submit").disabled = !canWrite(); }
+  });
+
+  // ---------- Bedienung ----------
+  document.querySelectorAll(".tally button").forEach(b => b.addEventListener("click", () => {
+    state.view = state.view === b.dataset.view ? "alle" : b.dataset.view; state.hl = null; render();
+  }));
+  $("#q").addEventListener("input", e => { state.q = e.target.value; render(); });
+  fSel.addEventListener("change", e => { state.kat = e.target.value; render(); });
+  $("#show-done").addEventListener("change", e => { state.showDone = e.target.checked; render(); });
+
+  // ---------- Darstellung ----------
+  function copyBtn(text) {
+    return el("button", { type: "button", class: "linkbtn", text: "kopieren", onclick: ev => {
+      const b = ev.currentTarget;
+      const fail = () => { b.textContent = "bitte markieren"; const s = b.previousSibling; const r = document.createRange(); r.selectNodeContents(s); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); };
+      try { navigator.clipboard.writeText(text).then(() => { b.textContent = "kopiert"; }, fail); } catch { fail(); }
+    } });
+  }
+
+  function card(e, pool, opts = {}) {
+    const m = opts.noMatch ? [] : matchesFor(e, pool);
+    let actions = null;
+    if (canModerate(e)) {
+      actions = el("div", { class: "actions" },
+        state.confirmDel === e.id
+          ? [el("button", { type: "button", class: "btn btn-ghost danger", text: "Wirklich löschen", onclick: () => { state.confirmDel = null; deleteEntry(e).catch(() => {}); } }),
+             el("button", { type: "button", class: "btn btn-ghost", text: "Behalten", onclick: () => { state.confirmDel = null; render(); } })]
+          : [el("button", { type: "button", class: "btn btn-ghost", text: e.erledigt ? "Wieder öffnen" : "Erledigt", onclick: () => changeEntry(e, { erledigt: !e.erledigt }).catch(() => {}) }),
+             el("button", { type: "button", class: "btn btn-ghost danger", text: "Löschen", onclick: () => { state.confirmDel = e.id; render(); } })]);
+    }
+    const src = state.hl ? pool.find(x => x.id === state.hl) : null;
+    const hl = src && (src.id === e.id || matchesFor(src, pool).some(r => r.o.id === e.id));
+    const other = e.typ === "biete" ? ["Gesuch", "Gesuchen"] : ["Angebot", "Angeboten"];
+    return el("article", { class: `card ${e.typ}${e.erledigt ? " done" : ""}${hl ? " hl" : ""}`, id: "e-" + e.id },
+      el("div", { class: "meta-top" },
+        el("span", { class: "pill " + e.typ, text: (ART[e.typ] || {})[e.art] || (e.typ === "biete" ? "Angebot" : "Gesuch") }),
+        e.erledigt ? el("span", { class: "pill ok", text: "Erledigt" }) : null,
+        e.beispiel ? el("span", { class: "pill ex", text: "Beispiel" }) : null,
+        el("span", { class: "cat", text: KAT[e.kategorie] || "Sonstiges" })),
+      el("h3", { text: e.titel }),
+      e.text ? el("p", { class: "txt", text: e.text }) : null,
+      el("div", { class: "who" },
+        el("div", { text: [e.name, e.ort, fmtDate(e.created)].filter(Boolean).join(" · ") }),
+        el("div", { class: "contact" }, el("span", { text: e.kontakt }), copyBtn(e.kontakt))),
+      m.length ? el("div", { class: "matchline" },
+        el("span", { text: `Passt zu ${m.length} ${m.length === 1 ? other[0] : other[1]}` }),
+        el("button", { type: "button", class: "linkbtn", text: state.hl === e.id ? "ausblenden" : "zeigen", onclick: () => {
+          state.hl = state.hl === e.id ? null : e.id; render();
+          if (state.hl) document.getElementById("e-" + m[0].o.id)?.scrollIntoView({ behavior: "smooth", block: "center" });
+        } })) : null,
+      actions);
+  }
+
+  function filtered(pool) {
+    const raw = state.q.trim().toLowerCase();
+    const q = words(raw);
+    return pool.filter(e => {
+      if (!state.showDone && e.erledigt) return false;
+      if (state.kat && e.kategorie !== state.kat) return false;
+      if ((state.view === "biete" || state.view === "suche") && e.typ !== state.view) return false;
+      if (raw) {
+        const hay = [e.titel, e.text, e.name, e.ort, KAT[e.kategorie]].join(" ").toLowerCase();
+        if (!hay.includes(raw)) {
+          const w = words(hay);
+          if (!q.size || ![...q].some(x => [...w].some(y => y.startsWith(x) || x.startsWith(y)))) return false;
+        }
+      }
+      return true;
+    }).sort((a, b) => b.created - a.created);
+  }
+
+  function allPairs(pool) {
+    const pairs = [];
+    pool.filter(e => e.typ === "suche").forEach(s => matchesFor(s, pool).forEach(r =>
+      pairs.push({ suche: s, biete: r.o, score: r.score, shared: r.shared })));
+    return pairs.sort((a, b) => b.score - a.score);
+  }
+
+  function emptyState() {
+    if (state.mode === "loading") {
+      return el("div", { class: "empty" }, el("h3", { text: "Brett wird geladen …" }), el("p", { text: "Gleich erscheinen hier die Zettel aus der Nachbarschaft." }));
+    }
+    return el("div", { class: "empty" },
+      el("h3", { text: "Noch hängt nichts am Brett" }),
+      el("p", { text: "Schreib den ersten Zettel: was du anbietest, verleihst, verschenkst oder suchst. Sobald ein Angebot zu einem Gesuch passt, markiert das Brett beide als Treffer." }),
+      el("button", { type: "button", class: "btn btn-ghost", text: "Beispiele ansehen", onclick: () => { state.showExamples = true; render(); } }));
+  }
+
+  function render() {
+    const pool = allEntries();
+    const open = pool.filter(e => !e.erledigt);
+    const pairs = allPairs(pool);
+    $("#n-biete").textContent = open.filter(e => e.typ === "biete").length;
+    $("#n-suche").textContent = open.filter(e => e.typ === "suche").length;
+    $("#n-match").textContent = pairs.length;
+    document.querySelectorAll(".tally button").forEach(b => b.setAttribute("aria-pressed", String(state.view === b.dataset.view)));
+
+    const out = $("#out"); out.replaceChildren();
+    if (state.showExamples) {
+      out.append(el("p", { class: "notice" },
+        "Die Beispiel-Zettel siehst nur du, sie werden nicht gespeichert. ",
+        el("button", { type: "button", class: "linkbtn", text: "Beispiele ausblenden", onclick: () => { state.showExamples = false; state.hl = null; render(); } })));
+    }
+    if (!pool.length) { out.append(emptyState()); return; }
+
+    if (state.view === "treffer") {
+      const ps = pairs.filter(p => !state.kat || p.suche.kategorie === state.kat || p.biete.kategorie === state.kat);
+      if (!ps.length) {
+        out.append(el("div", { class: "empty" }, el("h3", { text: "Noch keine Treffer" }),
+          el("p", { text: "Ein Treffer entsteht, wenn ein Angebot und ein Gesuch gemeinsame Stichworte oder dieselbe Kategorie haben. Je genauer der Titel, desto besser passt es." })));
+        return;
+      }
+      out.append(el("div", { class: "pairs" }, ps.map(p => el("div", { class: "pair" },
+        card(p.suche, pool, { noMatch: true }),
+        el("div", { class: "why" }, el("b", { text: "⇄" }),
+          p.shared.length ? "Stichwort: " + p.shared.slice(0, 3).join(", ") : "gleiche Kategorie"),
+        card(p.biete, pool, { noMatch: true })))));
+      return;
+    }
+
+    const list = filtered(pool);
+    if (!list.length) {
+      out.append(el("div", { class: "empty" }, el("h3", { text: "Nichts gefunden" }),
+        el("p", { text: "Versuch ein anderes Stichwort oder setz die Filter zurück." }),
+        el("button", { type: "button", class: "btn btn-ghost", text: "Filter zurücksetzen", onclick: () => {
+          state.q = ""; state.kat = ""; state.view = "alle"; $("#q").value = ""; fSel.value = ""; render(); } })));
+      return;
+    }
+    out.append(el("div", { class: "grid" }, list.map(e => card(e, pool))));
+  }
+
+  function note(msg, kind) { const n = $("#mode-note"); n.textContent = msg; n.dataset.kind = kind || ""; n.hidden = !msg; }
+
+  // ---------- Start ----------
+  function startLocal(reason) {
+    state.mode = "local";
+    state.entries = lsGet("nb-eintraege", []).map(i => ({ ...i, owner: "local" }));
+    note(reason, "warn");
+    render();
+  }
+
+  async function start() {
+    render();
+    if (!window.claude || typeof window.claude.use !== "function") {
+      startLocal("Diese Version speichert Zettel nur in diesem Browser. Damit alle Nachbarn dasselbe Brett sehen, braucht die Seite einen gemeinsamen Speicher.");
+      return;
+    }
+    const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+    if (!db) { startLocal("Der gemeinsame Speicher ist hier gerade nicht erreichbar. Zettel bleiben vorerst nur in diesem Browser."); return; }
+    state.db = db;
+    state.uid = user ? await user.id() : null;
+    state.isOwner = user ? await user.isOwner() : false;
+    const canW = user ? await user.can("data.write") : null;
+    if (!state.uid || canW === false) {
+      state.mode = "readonly";
+      $("#form").querySelectorAll("input,select,textarea,button").forEach(x => x.disabled = true);
+      note(state.uid ? "Du kannst das Brett lesen. Zum Schreiben braucht dein Zugang mindestens Mitwirken-Rechte." : "Melde dich an, um selbst Zettel aufzuhängen.");
+    } else {
+      state.mode = "db";
+    }
+    render();
+    let timer = setTimeout(() => { timer = null; note("Das Brett ist gerade nicht erreichbar. Was du siehst, ist eventuell nicht aktuell.", "warn"); }, 10000);
+    db.collection("eintraege").onSnapshot(snap => {
+      state.entries = snap.docs.flatMap(d => {
+        const items = (d.data() || {}).items;
+        return Array.isArray(items) ? items.filter(i => i && i.id && i.titel).map(i => ({ ...i, owner: d.id })) : [];
+      });
+      if (!snap.metadata.fromCache && timer) { clearTimeout(timer); timer = null; }
+      render();
+    }, () => {
+      if (timer) { clearTimeout(timer); timer = null; }
+      note("Das Brett konnte nicht geladen werden. Bitte die Seite später neu öffnen.", "warn");
+      render();
+    });
+  }
+  start();
+})();
+</script>
+
 </body>
 </html>
